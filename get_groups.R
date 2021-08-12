@@ -59,29 +59,61 @@ if(length(x)>0){
   colonia_accounts <- bind_rows(colonia_accounts, users_keep)}
 }
 }
+save(colonia_accounts, file = "/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_colonia.Rdata")
 
-x <- search_users("coloniaORcolonosORvecinosORcopaco florida", 10) %>%  filter(lang =="es")
+colonos_accounts <- c()
+for(i in 1:length(colonias_simplified$search_terms)){
+  search_phrase <- paste("colonos ", colonias_simplified$search_terms[i], sep = "")
+  x <- search_users(search_phrase)
+  if(length(x)>0){
+    users_keep <- x %>% filter(lang == "es")
+    if(length(users_keep$status_id)>0){
+      users_keep$cve_col <- colonias_simplified$cve_col[i]
+      colonos_accounts <- bind_rows(colonos_accounts, users_keep)}
+  }
+}
+save(colonos_accounts, file = "/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_colonos.Rdata")
 
+vecinos_accounts <- c()
+for(i in 1:length(colonias_simplified$search_terms)){
+  search_phrase <- paste("vecinos ", colonias_simplified$search_terms[i], sep = "")
+  x <- search_users(search_phrase)
+  if(length(x)>0){
+    users_keep <- x %>% filter(lang == "es")
+    if(length(users_keep$status_id)>0){
+      users_keep$cve_col <- colonias_simplified$cve_col[i]
+      vecinos_accounts <- bind_rows(vecinos_accounts, users_keep)}
+  }
+}
+save(vecinos_accounts, file = "/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_vecinos.Rdata")
 
-x <- search_users("colonos", 100)
-y <- search_users("vecinos", 50)
-z <- search_users("copaco", 50)
-a <- search_users("colonia", 50)
+copaco_accounts <- c()
+for(i in 1:length(colonias_simplified$search_terms)){
+  search_phrase <- paste("copaco ", colonias_simplified$search_terms[i], sep = "")
+  x <- search_users(search_phrase)
+  if(length(x)>0){
+    users_keep <- x %>% filter(lang == "es")
+    if(length(users_keep$status_id)>0){
+      users_keep$cve_col <- colonias_simplified$cve_col[i]
+      copaco_accounts <- bind_rows(copaco_accounts, users_keep)}
+  }
+}
+save(copaco_accounts, file = "/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_copaco.Rdata")
 
-# function to check whether something can be associated with mexico city 
-#cdmx_terms <- c("cdmx|ciudad mexico|distrito federal|df|d.f|alvaro obregon|benito juarez|coyacan|
-#cuajimalpa|cuauhtemoc|gustavo a madero|gam|gustavo a. madero|iztacalco|iztapalapa|magdalena contreras|
-#milpa alta|tlahuac|tlalpan|venustiano carranza|vc|xochimilco")
-#dat <- x
-#check_cdmx <- function(id= "1361650503734673408"){
- # description <- simplify_text(dat[dat$status_id==id, "description"] %>% slice(1))
-#  location <- simplify_text(dat[dat$status_id == id,"location"] %>% slice(1))
-#  place <- ifelse(!is.na(dat[dat$status_id == id,"place_full_name"]), simplify_text(dat[dat$status_id == id,"place_full_name"]), NA)
- # cdmx <- ifelse((str_detect(description, cdmx_terms)==TRUE|
-  #                str_detect(location, cdmx_terms)==TRUE|
-   #               (is.na(place) ==FALSE & str_detect(place, cdmx_terms)==TRUE)), 1,0)
-  #return(cdmx)
-#}
-#x$cdmx <- lapply(FUN =check_cdmx, X=x$status_id)
+load("/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_colonia.Rdata")
+load("/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_colonos.Rdata")
+load("/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_vecinos.Rdata")
+load("/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_copaco.Rdata")
 
+accounts <- bind_rows(colonia_accounts, colonos_accounts, copaco_accounts, vecinos_accounts)
+accounts <- accounts %>% group_by(screen_name) %>% slice(1)
+colonia_accounts <- accounts %>% group_by(cve_col) %>% tally()
+save(colonia_accounts, file = "/Users/alyssahuberts/Dropbox/1_Dissertation/2_CollectiveActionInfrastructure/2_Data/groups/accounts_all.Rdata")
 
+ggplot(accounts)+ geom_bar(aes(x =as.Date(account_created_at)), stat = "count") 
+colonia_accounts_2019_2020 <- accounts %>%
+  filter(as.Date(account_created_at) < as.Date("2020-01-01")&
+           as.Date(account_created_at) > as.Date("2018-01-01")) %>% 
+  group_by(cve_col) %>% tally()
+
+filter(as.Date(account_created_at) < as.Date("2020-01-01")) %>%  
